@@ -2,6 +2,7 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
+
 //for each prime use pipe to filte the num left
 void prime_filter( int left_read_fd) {
     int prime;
@@ -9,17 +10,21 @@ void prime_filter( int left_read_fd) {
         close(left_read_fd);
         return;
     }
-    printf("prime: %d\n", prime);
+    printf("prime %d\n", prime);
 
     int p[2];
     if (pipe(p) == -1) {
-        printf("pipe");
+        printf("pipe error\n");
+        close(left_read_fd);
         exit(1);
     }
 
     int pid = fork();
     if (pid == -1) {
-        printf("fork");
+        printf("fork error\n");
+        close(left_read_fd);
+        close(p[0]);
+        close(p[1]);
         exit(1);
     }
 
@@ -50,13 +55,15 @@ int main() {
 
     int p[2];
     if (pipe(p) == -1) {
-        printf("pipe");
+        printf("pipe error\n");
         exit(1);
     }
 
     int pid = fork();
     if (pid == -1) {
-        printf("fork");
+        printf("fork error\n");
+        close(p[0]);
+        close(p[1]);
         exit(1);
     }
 
