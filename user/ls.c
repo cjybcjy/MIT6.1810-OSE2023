@@ -20,6 +20,7 @@ fmtname(char *path)
     return p;
   memmove(buf, p, strlen(p));
   memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+  //对文件名使用空格填充到 DIRSIZ 的长度是为了确保当这些文件名被打印出来时，它们在视觉上保持一致的对齐。这种做法常见于需要格式化输出的场合
   return buf;
 }
 
