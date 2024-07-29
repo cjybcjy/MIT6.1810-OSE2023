@@ -1,1 +1,27 @@
+1. Looking at the backtrace output, which function called syscall?
+usertrap()
 
+2. What is the value of p->trapframe->a7 and what does that value represent?
+ trapframe = 0x87f74000
+((struct trapframe *)p->trapframe)->a7 = 7
+syscalls[7] = SYS_exec
+
+3. What was the previous mode that the CPU was in?
+$sstatus = 0x22 = 0010 0010 (binary)
+SPP (Supervisor Previous Privilege mode) 位于第 8 位 = 0
+the previous mode is User Mode
+
+4. Write down the assembly instruction the kernel is panicing at. Which register corresponds to the variable num?
+lw	a3,0(zero) # 0 <_entry-0x80000000>
+a3
+
+5. Why does the kernel crash?  is address 0 mapped in the kernel address space? Is that confirmed by the value in scause above?
+操作系统将地址 0 设为未映射或不可访问，以便捕获空指针引用等错误。这意味着当内核尝试访问地址 0 时，会触发一个访问错误或段错误，导致内核崩溃。
+内核的虚拟地址空间从 KERNBASE（0x80000000）开始，并没有包含地址 0
+the address range 0x0:0x80000000 contains I/O devices
+$scause = 0x8：Environment call from U-mode（用户模式下的系统调用）
+$stval = 0x0  stval寄存器在某些异常情况下（如页面错误）保存相关的虚拟地址
+
+6. What is the name of the binary that was running when the kernel paniced? What is its process id (pid)?
+p->name = initcode\000\000\000\000\000\000\000\000\000\000
+p->pid = 1
