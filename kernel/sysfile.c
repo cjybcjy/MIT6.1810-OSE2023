@@ -119,6 +119,15 @@ sys_fstat(void)
   return filestat(f, st);
 }
 
+//get proc && mem infomation
+uint64 
+sys_sysinfo(void) {
+    uint64 info;//用于存储用户空间指向结构体的指针。
+    //获取系统调用的第二个参数（用户指针），并将其存储到info中
+    argaddr(0, &info);
+    return sysinfo(info);
+}
+
 // Create the path new as a link to the same inode as old.
 uint64
 sys_link(void)

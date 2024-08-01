@@ -12,6 +12,7 @@
 #include "file.h"
 #include "stat.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 struct devsw devsw[NDEV];
 struct {
@@ -180,3 +181,16 @@ filewrite(struct file *f, uint64 addr, int n)
   return ret;
 }
 
+int sysinfo(uint64 addr) {
+    struct proc *p = myproc();
+    struct sysinfo info;//创建一个实际的结构体实例,避免无效指针传递
+    //通过使用已初始化的结构体，可以避免未定义行为或崩溃。
+    num_of_proc(&info);
+    free_mem(&info);
+
+    if (copyout(p->pagetable, addr, (char*)&info, sizeof(info)) < 0) {
+        return -1;
+    } else {
+        return 0;
+    }
+ }
