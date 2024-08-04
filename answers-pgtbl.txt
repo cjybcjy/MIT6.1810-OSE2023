@@ -1,0 +1,37 @@
+1. Which other xv6 system call(s) could be made faster using this shared page? Explain how.
+    It is suitable for system calls that return static or relatively static data, as getpid()，getppid()，getuid(), getgid().
+    uptime(), gettimeofday(), gethostname(), getdomainname(), each time-interrupt or a certain time interval update relatively static data.
+
+    Sharing pages is an optimization technique that speeds up certain system calls. 
+    In this technique, the kernel reduces the switching between user and kernel modes by writing shared data directly to physical memory pages in user space, 
+    thereby speeding up the execution of specific system calls.
+
+    struct usyscall {
+    int pid;          // 进程 ID
+    int ppid;         // 父进程 ID
+    int uid;          // 用户 ID
+    int gid;          // 组 ID
+    uint64 uptime;     // 系统运行时间
+    struct timeval time; // 当前时间
+    char hostname[256];  // 主机名
+    char domainname[256]; // 域名
+    };
+    
+    void set_hostname_and_domain(struct proc *p) {
+        if (p->usyscall) {
+            strncpy(p->usyscall->hostname, system_hostname, 256);
+            strncpy(p->usyscall->domainname, system_domainname, 256);
+        }
+    }
+
+        // 用户态读取
+    char* ugethostname(void) {
+        struct usyscall *usys = (struct usyscall *)USYSCALL;
+        return usys->hostname;
+    }
+
+2. For every leaf page in the vmprint output, explain what it logically contains and what its permission bits are.
+ By containing the physical address of the target memory page and various permission bits, leaf PTEs control how memory is accessed and protected.
+Except PTE_V, leaf ptes have PTE_R | PTE_W | PTE_U | PTE_X: This combination allows the page to be read and written by user-mode processes.
+ Access permissions (read, write, execute, user) are only meaningful when accessing actual data in physical memory. Leaf PTEs point directly to these physical pages, 
+ So Non-leaf page don't sit these permission bits.

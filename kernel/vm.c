@@ -449,3 +449,43 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+
+//确保打印指针时，转换为 (void *) 类型以避免潜在的警告。
+void vmprint(pagetable_t pagetable) {
+
+    printf("page table %p\n", (void *)pagetable);
+
+    for (int i = 0; i < 512; i++) {//root
+        pte_t pte2 = pagetable[i];
+        uint64 pa0, pa1, pa2;
+        pte_t pte0, pte1;
+        //pte is vaild && pte isn't leaf inode
+        //在指向下级页表的情况下，页表项的权限位应该为零。
+        if (pte2 & PTE_V) {
+            pa2 = PTE2PA(pte2);
+            printf("..%d: pte %p pa %p\n", i, (void *)pte2, (void *) pa2);
+            if ((pte2 & (PTE_R|PTE_W|PTE_X)) == 0) {//have next level pte
+                     pagetable_t child2 = (pagetable_t) pa2;   //转换为页表指针
+                     for (int j = 0; j < 512; j++) {
+                            pte1 = child2[j];   
+                            if (pte1 & PTE_V) {
+                                pa1 = PTE2PA(pte1);
+                                printf("....%d: pte %p pa %p\n", j, (void *)pte1, (void *)pa1);
+
+                                if ((pte1 & (PTE_R|PTE_W|PTE_X)) == 0) {
+                                    pagetable_t child1 = (pagetable_t)pa1;    
+                                    for (int k = 0; k < 512; k++) {//leaf node
+                                        pte0 = child1[k];
+                                        if (pte0 & PTE_V) {
+                                            pa0 = PTE2PA(pte0);  
+                                            printf("......%d: pte %p pa %p\n", k, (void *)pte0, (void *)pa0);
+                                        } 
+                                    }
+                                }
+                         }
+                    }
+            }
+         }
+
+    }
+}

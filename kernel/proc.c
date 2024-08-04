@@ -132,6 +132,15 @@ found:
     return 0;
   }
 
+// Allocate a usyscall page
+  if ((p->usyscall = (struct usyscall *)kalloc()) == 0) {
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
+//put pid on page
+  p->usyscall->pid = p->pid;
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){
@@ -143,7 +152,7 @@ found:
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
-  p->context.ra = (uint64)forkret;
+  p->context.ra = (uint64)forkret;//forkret 是新进程执行的入口点。
   p->context.sp = p->kstack + PGSIZE;
 
   return p;
@@ -158,6 +167,7 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
+  p->usyscall = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   p->pagetable = 0;
@@ -202,6 +212,15 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
+
+    //物理页的实际内容可能还未被使用或初始化，因此我们不需要立即释放它。使用 uvmunmap 清理页表项，保证后续尝试映射不会因为残留的页表状态而失败。
+  // map the shared memory page just below the trapframe page
+    if (mappages(pagetable, USYSCALL, PGSIZE, (uint64)(p->usyscall), PTE_R | PTE_U) < 0) {
+        uvmunmap(pagetable, USYSCALL, 1, 0);
+        uvmfree(pagetable, 0);
+        return 0;
+    }
+
   return pagetable;
 }
 
@@ -212,6 +231,7 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  uvmunmap(pagetable, USYSCALL, 1, 0);//release leaf pte
   uvmfree(pagetable, sz);
 }
 

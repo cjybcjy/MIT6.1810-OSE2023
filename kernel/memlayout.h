@@ -70,10 +70,21 @@
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+//#define 是一种预处理指令, 是一个简单的文本替换机制
+#define LAB_PGTBL 1
+
 #ifdef LAB_PGTBL
+
+//汇编程序不理解 C 语法
+//汇编文件不会看到这个 C 代码块
+#ifndef __ASSEMBLER__
+
 #define USYSCALL (TRAPFRAME - PGSIZE)
 
 struct usyscall {
   int pid;  // Process ID
 };
+
+#endif  // __ASSEMBLER__
+
 #endif
