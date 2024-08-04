@@ -78,7 +78,7 @@ argstr(int n, char *buf, int max)
   argaddr(n, &addr);
   return fetchstr(addr, buf, max);
 }
-
+#define LAB_PGTBL 1
 // Prototypes for the functions that handle system calls.
 extern uint64 sys_fork(void);
 extern uint64 sys_exit(void);

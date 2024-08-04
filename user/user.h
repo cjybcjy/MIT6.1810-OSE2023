@@ -1,5 +1,7 @@
 struct stat;
 
+#define LAB_PGTBL 1
+
 // system calls
 int fork(void);
 int exit(int) __attribute__((noreturn));

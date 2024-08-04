@@ -69,12 +69,44 @@ sys_sleep(void)
   return 0;
 }
 
+#define LAB_PGTBL 1
 
 #ifdef LAB_PGTBL
+//reports which pages have been accessed
 int
 sys_pgaccess(void)
 {
-  // lab pgtbl: your code here.
+  uint64 start_vapg;
+  int  npg;
+  uint64 maskbuf;
+  uint mask = 0;
+  
+  argaddr(0, &start_vapg);
+  argint(1, &npg);
+  argaddr(2, &maskbuf); 
+  pagetable_t u_pt = myproc()->pagetable;
+
+  if(npg > 32) {//4B = 32b
+        return -1;
+  }
+
+
+
+  for (int i = 0; i < npg; i++) {
+      pte_t *pt = walk(u_pt, start_vapg + i * PGSIZE, 0);
+      if ((*pt & PTE_A) && (*pt & PTE_V)) {
+            mask |= (1 << i);
+            //clear PTE_A after checking if it is set
+            *pt ^= PTE_A;
+      }
+    }
+
+
+    //获取 mask 的地址并将其转换为 char*
+     if (copyout(u_pt, maskbuf, (char*)&mask, 4) != 0) {
+        return -1;
+     }
+     
   return 0;
 }
 #endif
