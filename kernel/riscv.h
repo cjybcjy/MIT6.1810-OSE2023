@@ -327,6 +327,15 @@ sfence_vma()
   asm volatile("sfence.vma zero, zero");
 }
 
+//read the current frame pointer
+static inline uint64
+r_fp() {
+    uint64 x;
+    asm volatile("mv %0, s0" : "=r" (x));
+    //编译器会选择一个合适的寄存器并将其分配给变量 x，然后将这个寄存器映射为汇编代码中的 %0。
+    return x;
+}
+
 typedef uint64 pte_t;
 typedef uint64 *pagetable_t; // 512 PTEs
 
@@ -361,3 +370,5 @@ typedef uint64 *pagetable_t; // 512 PTEs
 // Sv39, to avoid having to sign-extend virtual addresses
 // that have the high bit set.
 #define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
+
+
