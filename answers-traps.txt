@@ -10,7 +10,7 @@ The integer 13 is passed as the third argument.-------->a2
     g(x) is inlined within f(x), and f(x) is further inlined into main()
 
 3. At what address is the function printf located?
-    0x0000000000000642 <printf>  main calls it with pc-relative addressing
+    pc = ra + 1570 = 0x30 + 0x622 = 0x652   <printf>  main calls it with pc-relative addressing
 
 4. What value is in the register ra just after the jalr to printf in main?
     返回地址 = 当前 PC + 4(指令长度)

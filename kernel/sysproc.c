@@ -93,3 +93,23 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// store the alarm interval and the pointer to the handler function in new fields in the proc structure
+uint64
+sys_sigalarm(void) {
+    struct proc* p = myproc();
+    argint(0, &p->alarm_ticks); 
+    argaddr(1, (uint64 *)&p->alarm_handler);//传递 p->alarm_handler 变量的地址
+    return 0;
+}
+
+
+//sigreturn is a system call, and its return value is stored in a0
+uint64
+sys_sigreturn(void) {
+    struct proc* p = myproc();
+    
+    *p->trapframe = *p->alarmframe;
+    p->inhandle = 0;
+    return p->trapframe->a0;
+}
